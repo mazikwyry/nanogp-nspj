@@ -24,7 +24,7 @@
   $atoken = '';
   $rtoken = '';
   $callback = '';
-  
+
   include('admin/config.php');
   include('admin/tools.php');
 
@@ -33,23 +33,20 @@
     response_json( array('nano_status' => 'error', 'nano_message' => 'Please install/enable CURL to execute this application.' ) );
     exit;
   }
-  
+
   // check write permissions
   if( !is_writable('admin/users') ) {
     response_json( array('nano_status' => 'error', 'nano_message' => 'Error: no write permissions on folder admin/users.' ) );
     exit;
   }
-  
-  $prot='http://';
-  if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off'){
-    $prot='https://';
-  }
+
+  $prot='https://';
 
   set_globals();
 
   if( !isset($_GET['code']) && !isset($_GET['revoke']) && !isset($_GET['user_info']) && $cfg_max_accounts == 1  ) {
-    foreach( glob( 'admin/users/*', GLOB_ONLYDIR ) as $folder) 
-    {	
+    foreach( glob( 'admin/users/*', GLOB_ONLYDIR ) as $folder)
+    {
       $atoken=file_get_contents( $folder . '/token_a.txt');
       $rtoken=file_get_contents( $folder . '/token_r.txt');
       $user_id = basename($folder);
@@ -60,7 +57,7 @@
     }
 
   }
-  
+
 
   // ##########
   // STEP 1: user must grant authorization
@@ -80,7 +77,7 @@
     header("Location: " . $request_to);     // display consent screen
   }
 
-  
+
   // ##########
   // STEP 2: get access token and refresh token
   if( isset($_GET['code']) ) {
@@ -106,10 +103,10 @@
     $info = curl_getinfo($ch);
     $ce = curl_error($ch);
     curl_close($ch);
-    
+
     if( $info['http_code'] === 200 ) {
       // ok
-      
+
       // retrieve user ID
       $ch = curl_init();
       curl_setopt($ch, CURLOPT_URL, 'https://www.googleapis.com/oauth2/v2/userinfo?access_token=' . $authObj->access_token );
@@ -123,18 +120,18 @@
       $info = curl_getinfo($ch);
       $ce = curl_error($ch);
       curl_close($ch);
-      
+
       if( $info['http_code'] === 200 ) {
         $objProfile = json_decode($response);
         if(  property_exists( $objProfile, 'id' ) ) {
           // we got the user ID
           $user_id = $objProfile -> id;
-          
+
           if( $user_id == '' ) {
             response_json( array('nano_status' => 'error', 'nano_message' => 'Retrieved user ID is empty.' ) );
             exit;
           }
-          
+
           if(  property_exists( $authObj, 'refresh_token' ) ) {
             // refresh token present -> ok, it's the first authorization grant
             // store tokens
@@ -151,7 +148,7 @@
             if(  property_exists( $objProfile, 'email' ) ) {
               file_put_contents( 'admin/users/' . $user_id . '/profile.txt', $objProfile->email);
             }
-            
+
             response_json( array('nano_status' => 'ok', 'nano_message' => 'Authorisation successfully granted (userID='.$user_id.').' ) );
           }
           else {
@@ -168,26 +165,26 @@
         response_json( array('nano_status' => 'error', 'nano_message' => 'Could not retrieve the user ID.' ) );
         exit;
       }
-  
+
     }
     else {
       response_json( array('nano_status' => 'error', 'nano_message' => 'Could not grant authorization. Curl error:' . $ce ) );
     }
-  } 
+  }
 
-  
+
   // ##########
   // REVOKE USER AUTHORIZATION
   if( isset($_GET['revoke']) ) {
     // can be done manually by the user: https://security.google.com/settings/security/permissions (in this case the user folder remains and must be deleted manually in the admin/users folder)
     // but here we can clear also the users data
     $user_id = $_GET['revoke'];
-    
+
     if( $user_id == '' ) {
       response_json( array('nano_status' => 'error', 'nano_message' => 'missing user ID') );
       exit;
     }
-    
+
     if( !is_dir( 'admin/users/' . $user_id ) ) {
       response_json( array('nano_status' => 'error', 'nano_message' => 'user ID does not exist (userID='.$user_id.')') );
       exit;
@@ -198,20 +195,20 @@
       response_json( array('nano_status' => 'error', 'nano_message' => 'could not find any access token (userID='.$user_id.')') );
       exit;
     }
-    
+
     if( revoke( $user_id ) === 'token_expired') {
       // error -> get a new access token
       get_new_access_token();
       // send request again, with the new access token
       revoke( $user_id );
     }
-    
+
 
   }
-  
+
   function revoke( $user_id ) {
     global $atoken;
-    
+
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, OAUTH2_REVOKE_URI . '?token=' .$atoken );
     curl_setopt($ch, CURLOPT_HEADER, true);
@@ -227,18 +224,18 @@
       // token expired?
       return 'token_expired';
     }
-    
+
     if( $info['http_code'] === 200) {
       array_map('unlink', glob('admin/users/' . $user_id . "/*.*"));
       rmdir('admin/users/' . $user_id);
       response_json( array('nano_status' => 'ok', 'nano_message' => 'authorisation revoked successfully (userID='.$user_id.').') );
       exit;
-    } 
-    
+    }
+
     response_json( array('nano_status' => 'error', 'nano_message' => 'Error (userID='.$user_id.'): '. $info['http_code'] . '-' . $ce ) );
     exit;
   }
-  
+
 
   // ##########
   // CHECK IF ACCESS ALREADY GRANTED
@@ -259,37 +256,37 @@
     if( $atoken === false || $atoken == '' ) {
       response_json( array('nano_status' => 'error', 'nano_message' => 'could not find access token (userID='.$user_id.')') );
       exit;
-    }    
-    
+    }
+
     $rtoken=file_get_contents( 'admin/users/' . $user_id . '/token_r.txt');
     if( $rtoken === false || $rtoken == '' ) {
       response_json( array('nano_status' => 'error', 'nano_message' => 'could not find refresh token (userID='.$user_id.')') );
       exit;
-    }    
-    
+    }
+
     response_json( array('nano_status' => 'ok', 'nano_message' => 'authorization already granted (userID='.$user_id.')') );
   }
 
-  
-  
+
+
   // ##########
-  // Display connection info for nanogallery2 
+  // Display connection info for nanogallery2
   function display_settings() {
     global $user_id, $prot;
-    
+
     echo 'Settings for nanogallery2:'. PHP_EOL . '<br/>';
     echo "  kind : 'google2'," . PHP_EOL . '<br/>';
     echo "  userID : '" . $user_id . "'," . PHP_EOL . '<br/>';
-    
-    
-    
+
+
+
     $u= $prot . $_SERVER["HTTP_HOST"] . $_SERVER["PHP_SELF"];
     $ul = explode('/', $u);
     array_pop($ul);
     // array_pop($ul);
-    $u= implode('/', $ul) . '/nanogp.php';    
+    $u= implode('/', $ul) . '/nanogp.php';
     echo "  google2URL : '" . $u . "'" . PHP_EOL . "<br/>";
   }
-  
+
 
 ?>
