@@ -20,17 +20,17 @@
   include('admin/tools.php');
 
   set_globals();
-  
+
   $request=$_GET;
   // echo implode($request);
 
-	$albums = array();	
+	$albums = array();
 	$medias = array();
   $report = '';
-	
+
   $user_id = $request['nguserid'];
   unset($request['nguserid']);
-  
+
   $album_id = '';
   if( isset($_GET['ngalbumid']) ) {
     $album_id = $request['ngalbumid'];
@@ -46,7 +46,7 @@
   $content_kind = $request['kind'];
 
   // option for generating a report of the user's Google Photo content
-  // to avoid publishing confidential data, the report is only viewable with restricted access (in the user folder)	
+  // to avoid publishing confidential data, the report is only viewable with restricted access (in the user folder)
   $generate_report = false;
   $report = '';
   if( isset($_GET['report']) ) {
@@ -60,7 +60,7 @@
 		$content_kind = 'album';
   }
 
-  
+
   if( !function_exists('curl_version') ) {
     response_json( array('nano_status' => 'error', 'nano_message' => 'Please install/enable CURL on your web server.' ) );
     exit;
@@ -71,8 +71,8 @@
     response_json( array('nano_status' => 'error', 'nano_message' => 'Missing access token. Please grant authorization.' ) );
     exit;
   }
-  
-  
+
+
   // ##### retrieve the list of albums
   if( $content_kind == 'album' ) {
 		$url = 'https://photoslibrary.googleapis.com/v1/albums';
@@ -100,11 +100,11 @@
       response_json( array('nano_status' => 'ok', 'nano_message' => 'The report for user ' . $user_id . ' has been generated on the server.' ) );
     }
 	}
-  
+
   // ##### retrieve the content of one album -> list of medias
   if( $content_kind == 'photo' ) {
 		$url = 'https://photoslibrary.googleapis.com/v1/mediaItems:search';
-		
+
 		$r = '';
 		do {
 			// loop until no next page token
@@ -119,16 +119,16 @@
 
 		response_json( array_merge(array('nano_status' => 'ok', 'nano_message' => ''), $medias) );
   }
-  
-  
+
+
   // ##### send the request to GOOGLE PHOTOS
   function send_gprequest( $url, $content_kind, $nextPageToken ) {
-    global $callback, $atoken, $request, $albums, $album_id, $medias, $generate_report, $report, $user_id;	
+    global $callback, $atoken, $request, $albums, $album_id, $medias, $generate_report, $report, $user_id;
 
 		$request = array();
     $request['access_token'] = $atoken;
 		if( $content_kind == 'album' ) {
-			$request['pageSize'] = 50;
+			$request['pageSize'] = 20;
 			if( $nextPageToken != '' ) {
 				$request['pageToken'] = $nextPageToken;
 			}
@@ -148,15 +148,15 @@
     curl_setopt($ch, CURLOPT_VERBOSE, true);
 		if( $content_kind == 'photo' ) {
 			// send json parameters
-			$data = array('albumId' => $album_id, 'pageSize' => '100', 'pageToken' =>  $nextPageToken );  
-			$data_string = json_encode($data); 
-			curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string); 
+			$data = array('albumId' => $album_id, 'pageSize' => '50', 'pageToken' =>  $nextPageToken );
+			$data_string = json_encode($data);
+			curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string);
 		}
     $response = curl_exec($ch);
     $msg = curl_errno($ch);
     $info = curl_getinfo($ch);
     curl_close($ch);
-		
+
     if( $response == 'Token revoked' ) {
       response_json( array('nano_status' => 'error', 'nano_message' => 'Token revoked - ' . $url ) );
       exit;
@@ -166,12 +166,12 @@
       response_json( array('nano_status' => 'error', 'nano_message' => 'No album found - ' . $url ) );
       exit;
     }
- 
+
     if( $info['http_code'] === 403 or $info['http_code'] === 401 ) {
       return 'token_expired';
     }
 
-    
+
     if( $info['http_code'] === 200 ) {
 			$received = json_decode($response, true);
 
@@ -186,7 +186,7 @@
         // LIST OF ALBUMS
 				foreach ($received['albums'] as $k => $v) {
 					// filter albums (see configuration)
-          
+
 					global $albums_filter;
           $value = $v['title'];
 					$filter = false;
@@ -228,8 +228,8 @@
       response_json( array('nano_status' => 'error', 'nano_message' => 'curl error' . $info['http_code'] . ' - ' . $msg . ' - ' . $url ) );
       exit;
     }
-  
+
   }
-  
+
 
 ?>
