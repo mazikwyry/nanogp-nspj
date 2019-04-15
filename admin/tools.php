@@ -12,9 +12,9 @@
   // ##### send JSON response
   function response_json ( $msg_array ) {
     global $callback;
- 
- 
- 
+
+
+
     if( $callback != '' ) {
       // JSONP
       header('Content-Type: application/javascript; charset=utf-8');
@@ -31,13 +31,13 @@
 
   }
 
-  
-  
-  
+
+
+
   // ##### refresh the access token
   function get_new_access_token(){
     global  $user_id, $cfg_client_secret, $cfg_client_id, $rtoken, $atoken;
-  
+
     $rtoken=file_get_contents('admin/users/' .$user_id. '/token_r.txt');
     if( $rtoken === false || $rtoken == '' ) {
       response_json( array('nano_status' => 'error', 'nano_message' => 'Missing refresh token. Please grant authorization.' ) );
@@ -63,7 +63,7 @@
     $msg=curl_error($ch);
     $info = curl_getinfo($ch);
     // print_r($response);
- 		
+
  		curl_close($ch);
 
     if( $info['http_code'] === 200 ) {
@@ -75,23 +75,23 @@
         return true;
       }
     }
-    
+
     // error
-    response_json( array('nano_status' => 'error', 'nano_message' => 'Error: could not get a new access token: ' . $info['http_code'] ) );
+    response_json( array('nano_status' => 'error', 'nano_message' => 'Error: could not get a new access token: ' . $msg ) );
     exit;
-      
+
 
   }
 
   // ##### write to the log file
   function write_log( $msg ) {
     global $cfg_log;
-    
+
     if( $cfg_log === true ) {
       $time = @date('[d/M/Y:H:i:s]');
       file_put_contents( 'admin/log.txt', $time . ' ' . $msg . "\r\n", FILE_APPEND );
     }
   }
-  
+
 
 ?>
