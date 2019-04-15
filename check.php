@@ -19,7 +19,7 @@
   $atoken = '';
   $rtoken = '';
   $callback = '';
-  
+
   include('admin/config.php');
   include('admin/tools.php');
 
@@ -31,7 +31,7 @@
   else {
     echo 'Ok.' . PHP_EOL . '<br/>';
   }
-  
+
   // check write permissions
   echo '- Write permissions: ' . PHP_EOL . '<br/>';
   if( !is_writable('admin/users') ) {
@@ -40,8 +40,8 @@
   else {
     echo 'Ok.' . PHP_EOL . '<br/>';
   }
-  
-  $prot='http://';
+
+  $prot='https://';
   if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off'){
     $prot='https://';
   }
@@ -61,12 +61,12 @@
 
   $request_to = OAUTH2_AUTH_URL . '?' . http_build_query($params, '', '&');
   echo '- URL request: ' . $request_to . PHP_EOL . '<br/>';
-  
-  
-  
+
+
+
   // display nanogallery2 settings
   if( $cfg_max_accounts == 1 ) {
-    foreach( glob( 'admin/users/*', GLOB_ONLYDIR ) as $folder) 
+    foreach( glob( 'admin/users/*', GLOB_ONLYDIR ) as $folder)
     {
       $atoken=file_get_contents( $folder . '/token_a.txt');
       $rtoken=file_get_contents( $folder . '/token_r.txt');
@@ -78,27 +78,27 @@
     }
 
   }
-  
-  
-  
+
+
+
   // ##########
-  // Display connection info for nanogallery2 
+  // Display connection info for nanogallery2
   function display_settings() {
     global $user_id, $prot;
-    
+
     echo '- Settings for nanogallery2:'. PHP_EOL . '<br/>';
     echo "  kind : 'google2'," . PHP_EOL . '<br/>';
     echo "  userID : '" . $user_id . "'," . PHP_EOL . '<br/>';
-    
-    
-    
+
+
+
     $u= $prot . $_SERVER["HTTP_HOST"] . $_SERVER["PHP_SELF"];
     $ul = explode('/', $u);
     array_pop($ul);
     // array_pop($ul);
-    $u= implode('/', $ul) . '/nanogp.php';    
+    $u= implode('/', $ul) . '/nanogp.php';
     echo "  google2URL : '" . $u . "'" . PHP_EOL . "<br/>";
   }
-  
+
 
 ?>
