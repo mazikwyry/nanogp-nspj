@@ -40,7 +40,7 @@
 
     $rtoken=file_get_contents('admin/users/' .$user_id. '/token_r.txt');
 
-    error_log("----- !!! refresh token: " +$rtoken);
+    error_log("----- !!! refresh token: "  . $rtoken);
 
 
     if( $rtoken === false || $rtoken == '' ) {
@@ -73,16 +73,16 @@
     if( $info['http_code'] === 200 ) {
       if( property_exists( $authObj, 'access_token' ) ) {
         // ok, we have a new access token -> save it for later use
-        error_log("----- !!! refresh token: " +$authObj);
-        error_log("----- !!! refresh token: " +$authObj->access_token);
+        error_log("----- !!! refresh token: " . $authObj);
+        error_log("----- !!! refresh token: " . $authObj->access_token);
         $atoken=$authObj->access_token;
-        file_put_contents('admin/users/' .$user_id. '/token_a.txt', $atoken);
+        file_put_contents('admin/users/' . $user_id. '/token_a.txt', $atoken);
         write_log( 'new access token obtained - ' . $user_id );
         return true;
       }
     }
 
-    error_log("----- !!! refresh token: " +$response);
+    error_log("----- !!! refresh token: " . $response);
 
     write_log( 'errror - ' . $response );
 
