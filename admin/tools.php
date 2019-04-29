@@ -76,6 +76,8 @@
       }
     }
 
+    write_log( 'errror - ' . $response );
+
     // error
     response_json( array('nano_status' => 'error', 'nano_message' => 'Error: could not get a new access token: ' . var_dump($authObj) ) );
     exit;
