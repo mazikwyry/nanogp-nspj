@@ -39,6 +39,11 @@
     global  $user_id, $cfg_client_secret, $cfg_client_id, $rtoken, $atoken;
 
     $rtoken=file_get_contents('admin/users/' .$user_id. '/token_r.txt');
+
+    write_log( 'errror - ' . $rtoken );
+    print_r($rtoken);
+
+
     if( $rtoken === false || $rtoken == '' ) {
       response_json( array('nano_status' => 'error', 'nano_message' => 'Missing refresh token. Please grant authorization.' ) );
       exit;
