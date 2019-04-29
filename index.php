@@ -168,6 +168,7 @@
     }
 
     if( $info['http_code'] === 403 or $info['http_code'] === 401 ) {
+      error_log("----- !!! error: " . $response);
       return 'token_expired';
     }
 
