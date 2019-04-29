@@ -73,7 +73,7 @@
     if( $info['http_code'] === 200 ) {
       if( property_exists( $authObj, 'access_token' ) ) {
         // ok, we have a new access token -> save it for later use
-        error_log("----- !!! refresh token: " . $authObj);
+        error_log("----- !!! refresh token: " . var_dump($authObj));
         error_log("----- !!! refresh token: " . $authObj->access_token);
         $atoken=$authObj->access_token;
         file_put_contents('admin/users/' . $user_id. '/token_a.txt', $atoken);
